@@ -2,6 +2,26 @@
 
 Hidden Markov Model to generate autocomplete suggestion.
 
+# Installation
+
+Download and install the last spark distribution
+Export variables, e.g.:
+
+```bash
+export SPARK_HOME=/opt/spark
+export PYTHONPATH=$SPARK_HOME/python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH
+```
+
+Install requirements:
+```bash
+pip install -r requirements.txt
+```
+
+Install the pacakge:
+```bash
+python setup.py install
+```
+
 # How To Use
 
 The model can be trained with your own list of sentences.
