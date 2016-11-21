@@ -107,7 +107,7 @@ ac.predictions("country")
         if n > 1:
             sentence = [" ".join(n) for n in ngrams(sentence.split(), n, pad_right=True, right_pad_symbol='</END>')]
         else:
-            sentence = sentence.split(" ")
+            sentence = sentence.split()
         # return the token
         # filter for empty string
         return list(filter(None, sentence))
