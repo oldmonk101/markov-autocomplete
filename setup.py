@@ -31,6 +31,8 @@ def setup_package():
         # The project's main homepage.
         url='https://github.com/YourMD/markov-autocomplete',
 
+        download_url='https://github.com/YourMD/markov-autocomplete/tarball/autocomplete',
+
         # Author details
         author='Matteo Tomassetti (Data Scientist at Your.MD)',
         author_email='matteo.tomassetti@your.md',
