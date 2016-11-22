@@ -3,7 +3,7 @@ import os
 import pickle
 import numpy as np
 from nltk import ngrams
-from collections import Counter, defaultdict
+from collections import Counter
 from pyspark import SparkContext, SparkConf
 
 
@@ -78,14 +78,14 @@ ac.predictions("country")
                 self.compute_language_model()
 
         # ngrams_freqs is a dictionary whose keys are the ngrams labels and the values their counts
-        self.ngrams_freqs = defaultdict(dict)
+        self.ngrams_freqs = dict()
         for N in range(1, self.n_model + 1):
             filename = self.model_path + "/" + str(N) + "-grams.pickle"
             with open(filename, "rb") as f:
                 self.ngrams_freqs[N] = pickle.load(f)
 
         # saving the ngrams_freqs keys in a separate dictionary
-        self.ngrams_keys = defaultdict(str)
+        self.ngrams_keys = dict()
         for N in range(1, self.n_model + 1):
             self.ngrams_keys[N] = list(self.ngrams_freqs[N].keys())
 
@@ -146,10 +146,9 @@ ac.predictions("country")
 
             sc.stop()
 
-
     def compute_prob_sentence(self, sentence):
         """
-        Given a sentence, return the log probability of that sentece using the n-gram approximation
+        Given a sentence, return the log probability of that sentence using the n-gram approximation
         :return:
         """
         if sentence != "":
@@ -163,13 +162,15 @@ ac.predictions("country")
                 #
                 ngram_model_to_use = len(piece)
                 piece_lbl = " ".join(piece)
-                piece_prob = np.log10(
-                    self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0) / self.total_counts[ngram_model_to_use - 1])
+                if ngram_model_to_use in self.ngrams_freqs:
+                    piece_prob = np.log10(
+                        self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0) / self.total_counts[ngram_model_to_use - 1])
+                else:
+                    piece_prob = 0
                 total_prob += piece_prob
             return total_prob
         else:
             return -100
-
 
     def predictions(self, word):
         """
