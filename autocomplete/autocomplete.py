@@ -3,18 +3,31 @@ import os
 import pickle
 import numpy as np
 from nltk import ngrams
-from collections import Counter, defaultdict
+from collections import Counter
 from pyspark import SparkContext, SparkConf
+
 
 class Autocomplete():
     """
-To train the autocomplete with your own data you need to have a list of sentences and pass it as an argument of the class.
+    To train the autocomplete with your own data you need to have a list of sentences
+    and pass it as an argument of the class.
 
-For example we can use the first two paragraphs from Robinson Crusoe
+    For example we can use the first two paragraphs from Robinson Crusoe
 
 from autocomplete.autocomplete import Autocomplete
 
-sentences = ["I WAS born in the year 1632, in the city of York, of a good family, though not of that country, my father being a foreigner of Bremen, who settled first at Hull. He got a good estate by merchandise, and leaving off his trade, lived afterwards at York, from whence he had married my mother, whose relations were named Robinson, a very good family in that country, and from whom I was called Robinson Kreutznaer; but, by the usual corruption of words in England, we are now called - nay we call ourselves and write our name - Crusoe; and so my companions always called me.", "I had two elder brothers, one of whom was lieutenant-colonel to an English regiment of foot in Flanders, formerly commanded by the famous Colonel Lockhart, and was killed at the battle near Dunkirk against the Spaniards. What became of my second brother I never knew, any more than my father or mother knew what became of me."]
+sentences = ['''I WAS born in the year 1632, in the city of York, of a good family,\
+though not of that country, my father being a foreigner of Bremen,\
+who settled first at Hull. He got a good estate by merchandise,\
+and leaving off his trade, lived afterwards at York,\
+from whence he had married my mother, whose relations were named Robinson,\
+a very good family in that country, and from whom I was called Robinson Kreutznaer;\
+but, by the usual corruption of words in England, we are now called - nay we call\
+ourselves and write our name - Crusoe; and so my companions always called me.",\
+"I had two elder brothers, one of whom was lieutenant-colonel to an English\
+regiment of foot in Flanders, formerly commanded by the famous Colonel Lockhart,\
+and was killed at the battle near Dunkirk against the Spaniards. What became of my\
+second brother I never knew, any more than my father or mother knew what became of me.''']
 
 ac = Autocomplete(model_path="ngram",
                   sentences=sentences,
@@ -28,8 +41,8 @@ ac = Autocomplete(model_path="ngram",
 ac.predictions("country")
     """
 
-
-    def __init__(self, model_path="./", sentences=[], n_model=3, n_candidates=10, match_model="middle", min_freq=5, punctuations="""!"#$%&\'()*+,./:;<=>?@[\\]^_{|}~""", lowercase=True):
+    def __init__(self, model_path="./", sentences=None, n_model=3, n_candidates=10, match_model="middle",
+                 min_freq=5, punctuations="""!"#$%&\'()*+,./:;<=>?@[\\]^_{|}~""", lowercase=True):
         # Model parameters
         # order of the n-gram to use for the autocomplete
         self.n_model = n_model
@@ -44,65 +57,58 @@ ac.predictions("country")
         self.min_freq = min_freq
         # punctuations to remove
         self.punctuations = punctuations
-        # lowercase the senteces?
+        # lowercase the sentences?
         self.lowercase = lowercase
         # list of sentences to use to train the model
+        if sentences is None:
+            sentences = []
         self.sentences = sentences
 
         if not os.path.isdir(self.model_path):
             os.makedirs(self.model_path)
 
         # loading the language model
-        language_model_exists = True
         for N in range(1, self.n_model + 1):
             filename = self.model_path + "/" + str(N) + "-grams.pickle"
             if not os.path.exists(filename):
-                language_model_exists = False
-
-        if not language_model_exists or sentences != []:
-            # if no language model is found, then it is computed
-            # remove the dashes and the bendy apostrophe
-            if self.sentences == []:
-                raise Exception("You need to give a sample sentences to train the model!")
-            else:
+                # if no language model is found, then it is computed
+                # remove the dashes and the bendy apostrophe
+                if not self.sentences:
+                    raise Exception("You need to give a sample sentences to train the model!")
                 self.compute_language_model()
 
         # ngrams_freqs is a dictionary whose keys are the ngrams labels and the values their counts
-        self.ngrams_freqs = defaultdict(dict)
+        self.ngrams_freqs = dict()
         for N in range(1, self.n_model + 1):
             filename = self.model_path + "/" + str(N) + "-grams.pickle"
             with open(filename, "rb") as f:
                 self.ngrams_freqs[N] = pickle.load(f)
 
         # saving the ngrams_freqs keys in a separate dictionary
-        self.ngrams_keys = defaultdict(str)
+        self.ngrams_keys = dict()
         for N in range(1, self.n_model + 1):
             self.ngrams_keys[N] = list(self.ngrams_freqs[N].keys())
 
         # saving the total counts
         self.total_counts = [sum(self.ngrams_freqs[N].values()) for N in range(1, self.n_model + 1)]
 
-
     def get_ngrams(self, sentence, n=1):
         """
         Given a sentence returns a list of its n-grams
         """
-        # remove multiple whitespaces and line-breaks
-        sentence = ' '.join(sentence.split())
         # remove punctuation
         if self.punctuations != "":
-            sentence = re.sub('[' + self.punctuations + ']', '', sentence).strip()
+            sentence = re.sub('[' + self.punctuations + ']', ' ', sentence).strip()
         if self.lowercase:
             sentence = sentence.lower()
         # generate tokens
         if n > 1:
-            sentence = [" ".join(n) for n in ngrams(sentence.split(" "), n, pad_right=True, right_pad_symbol='</END>')]
+            sentence = [" ".join(n) for n in ngrams(sentence.split(), n, pad_right=True, right_pad_symbol='</END>')]
         else:
-            sentence = sentence.split(" ")
+            sentence = sentence.split()
         # return the token
         # filter for empty string
         return list(filter(None, sentence))
-
 
     def compute_language_model(self):
         """
@@ -110,11 +116,11 @@ ac.predictions("country")
         """
         if len(self.sentences) < 1e4:
             for N in range(1, self.n_model + 1):
-                ngrams = []
+                ngrams_list = []
                 for sentence in self.sentences:
                     ngrams_sentence = self.get_ngrams(sentence, n=N)
-                    ngrams.extend(ngrams_sentence)
-                ngrams_freqs = Counter(ngrams)
+                    ngrams_list.extend(ngrams_sentence)
+                ngrams_freqs = Counter(ngrams_list)
                 filename = self.model_path + "/" + str(N) + "-grams.pickle"
                 with open(filename, "wb") as f:
                     pickle.dump(ngrams_freqs, f)
@@ -138,10 +144,9 @@ ac.predictions("country")
 
             sc.stop()
 
-
     def compute_prob_sentence(self, sentence):
         """
-        Given a sentence, return the log probability of that sentece using the n-gram approximation
+        Given a sentence, return the log probability of that sentence using the n-gram approximation
         :return:
         """
         if sentence != "":
@@ -155,13 +160,16 @@ ac.predictions("country")
                 #
                 ngram_model_to_use = len(piece)
                 piece_lbl = " ".join(piece)
-                piece_prob = np.log10(
-                    self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0) / self.total_counts[ngram_model_to_use - 1])
+                if ngram_model_to_use in self.ngrams_freqs:
+                    den = float(self.total_counts[ngram_model_to_use - 1])
+                    num = float(self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0))
+                    piece_prob = np.log10(num/den)
+                else:
+                    return -np.inf
                 total_prob += piece_prob
             return total_prob
         else:
             return -100
-
 
     def predictions(self, word):
         """
@@ -181,11 +189,11 @@ ac.predictions("country")
             word = " ".join(parts[-self.n_model + 1:])
         #
         if self.match_model == "start":
-            candidates = np.array(list(filter(lambda x: x.startswith(word), self.ngrams_keys[self.n_model])))
+            candidates = np.array(list(filter(lambda x: x.startswith(word), self.ngrams_keys.get(self.n_model, ''))))
         elif self.match_model == "end":
-            candidates = np.array(list(filter(lambda x: x.endswith(word), self.ngrams_keys[self.n_model])))
+            candidates = np.array(list(filter(lambda x: x.endswith(word), self.ngrams_keys.get(self.n_model, ''))))
         elif self.match_model == "middle":
-            candidates = np.array(list(filter(None, [key if word in key else None for key in self.ngrams_keys[self.n_model]])))[::-1]
+            candidates = np.array(list(filter(None, [key if word in key else None for key in self.ngrams_keys.get(self.n_model, '')])))[::-1]
         else:
             raise Exception("match_model can only be `start`, `end` or `middle`")
         #
