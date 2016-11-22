@@ -96,8 +96,6 @@ ac.predictions("country")
         """
         Given a sentence returns a list of its n-grams
         """
-        # remove multiple whitespaces and line-breaks
-        sentence = ' '.join(sentence.split())
         # remove punctuation
         if self.punctuations != "":
             sentence = re.sub('[' + self.punctuations + ']', ' ', sentence).strip()
@@ -211,9 +209,6 @@ ac.predictions("country")
                     predictions.append(" ".join([beginning.capitalize(), candidates[i].replace("</END>", "")]).strip())
         #
         predictions = np.array(predictions)
-        for sentence in predictions:
-            print("SEN", sentence)
-            print("PROB", self.compute_prob_sentence(sentence), "\n")
         probabilities = np.array(
             [self.compute_prob_sentence(sentence) for sentence in predictions])
         order = np.argsort(probabilities)[::-1]
