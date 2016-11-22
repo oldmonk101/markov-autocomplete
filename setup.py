@@ -20,7 +20,7 @@ def setup_package():
 
     metadata = dict(
         name='markov-autocomplete',
-
+        packages=['markov-autocomplete'],
         # Versions should comply with PEP440.  For a discussion on single-sourcing
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
@@ -29,7 +29,7 @@ def setup_package():
         long_description=long_description,
 
         # The project's main homepage.
-        url='https://github.com/YourMD/autocomplete',
+        url='https://github.com/YourMD/markov-autocomplete',
 
         # Author details
         author='Matteo Tomassetti (Data Scientist at Your.MD)',
