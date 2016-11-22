@@ -191,11 +191,11 @@ ac.predictions("country")
             word = " ".join(parts[-self.n_model + 1:])
         #
         if self.match_model == "start":
-            candidates = np.array(list(filter(lambda x: x.startswith(word), self.ngrams_keys[self.n_model])))
+            candidates = np.array(list(filter(lambda x: x.startswith(word), self.ngrams_keys.get(self.n_model, ''))))
         elif self.match_model == "end":
-            candidates = np.array(list(filter(lambda x: x.endswith(word), self.ngrams_keys[self.n_model])))
+            candidates = np.array(list(filter(lambda x: x.endswith(word), self.ngrams_keys.get(self.n_model, ''))))
         elif self.match_model == "middle":
-            candidates = np.array(list(filter(None, [key if word in key else None for key in self.ngrams_keys[self.n_model]])))[::-1]
+            candidates = np.array(list(filter(None, [key if word in key else None for key in self.ngrams_keys.get(self.n_model, '')])))[::-1]
         else:
             raise Exception("match_model can only be `start`, `end` or `middle`")
         #
