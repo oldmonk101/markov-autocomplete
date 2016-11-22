@@ -163,10 +163,11 @@ ac.predictions("country")
                 ngram_model_to_use = len(piece)
                 piece_lbl = " ".join(piece)
                 if ngram_model_to_use in self.ngrams_freqs:
-                    piece_prob = np.log10(
-                        self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0) / self.total_counts[ngram_model_to_use - 1])
+                    den = float(self.total_counts[ngram_model_to_use - 1])
+                    num = float(self.ngrams_freqs[ngram_model_to_use].get(piece_lbl.lower(), 0))
+                    piece_prob = np.log10(num/den)
                 else:
-                    piece_prob = 0
+                    return -np.inf
                 total_prob += piece_prob
             return total_prob
         else:
@@ -210,6 +211,9 @@ ac.predictions("country")
                     predictions.append(" ".join([beginning.capitalize(), candidates[i].replace("</END>", "")]).strip())
         #
         predictions = np.array(predictions)
+        for sentence in predictions:
+            print("SEN", sentence)
+            print("PROB", self.compute_prob_sentence(sentence), "\n")
         probabilities = np.array(
             [self.compute_prob_sentence(sentence) for sentence in predictions])
         order = np.argsort(probabilities)[::-1]
