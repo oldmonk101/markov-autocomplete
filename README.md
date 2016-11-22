@@ -17,7 +17,7 @@ Install requirements:
 pip install -r requirements.txt
 ```
 
-Install the pacakge:
+Install the package:
 ```bash
 python setup.py install
 ```

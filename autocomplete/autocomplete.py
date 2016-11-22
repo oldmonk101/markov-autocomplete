@@ -4,15 +4,13 @@ import pickle
 import numpy as np
 from nltk import ngrams
 from collections import Counter
-from pyspark import SparkContext, SparkConf
-
 
 class Autocomplete():
     """
-    To train the autocomplete with your own data you need to have a list of sentences
-    and pass it as an argument of the class.
+To train the autocomplete with your own data you need to have a list of sentences
+and pass it as an argument of the class.
 
-    For example we can use the first two paragraphs from Robinson Crusoe
+For example we can use the first two paragraphs from Robinson Crusoe
 
 from autocomplete.autocomplete import Autocomplete
 
@@ -92,6 +90,7 @@ ac.predictions("country")
         # saving the total counts
         self.total_counts = [sum(self.ngrams_freqs[N].values()) for N in range(1, self.n_model + 1)]
 
+
     def get_ngrams(self, sentence, n=1):
         """
         Given a sentence returns a list of its n-grams
@@ -110,6 +109,7 @@ ac.predictions("country")
         # filter for empty string
         return list(filter(None, sentence))
 
+
     def compute_language_model(self):
         """
         Given a list of sentences compute the n-grams
@@ -126,23 +126,29 @@ ac.predictions("country")
                     pickle.dump(ngrams_freqs, f)
                 print("Saving the %s-grams in %s" % (N, filename))
         else:
-            # If there are more than 100,000 sentences use Spark to compute the n-grams
-            conf = SparkConf().setMaster("local").setAppName("ComputeLanguageModel")
-            sc = SparkContext(conf=conf)
-            sentences = sc.parallelize(self.sentences)
+            try:
+                from pyspark import SparkContext, SparkConf
+            except:
+                raise ImportError("pySpark not found! Please go to http://spark.apache.org/downloads.html")
+            else:
+                # If there are more than 100,000 sentences use Spark to compute the n-grams
+                conf = SparkConf().setMaster("local").setAppName("ComputeLanguageModel")
+                sc = SparkContext(conf=conf)
+                sentences = sc.parallelize(self.sentences)
 
-            for N in range(1, self.n_model + 1):
-                ngrams_freqs = sentences.flatMap(lambda x: self.get_ngrams(x, n=N))
-                ngrams_freqs = ngrams_freqs.map(lambda word: (word, 1)).reduceByKey(lambda x, y: x + y).collect()
-                ngrams_freqs.sort(key=lambda x: -x[1])
-                ngrams_freqs = list(filter(lambda x: x[1] > self.min_freq, ngrams_freqs))
-                ngrams_freqs = dict(ngrams_freqs)
-                filename = self.model_path + "/" + str(N) + "-grams.pickle"
-                with open(filename, "wb") as f:
-                    pickle.dump(ngrams_freqs, f)
-                    print("Saving the %s-grams in %s" % (N, filename))
+                for N in range(1, self.n_model + 1):
+                    ngrams_freqs = sentences.flatMap(lambda x: self.get_ngrams(x, n=N))
+                    ngrams_freqs = ngrams_freqs.map(lambda word: (word, 1)).reduceByKey(lambda x, y: x + y).collect()
+                    ngrams_freqs.sort(key=lambda x: -x[1])
+                    ngrams_freqs = list(filter(lambda x: x[1] > self.min_freq, ngrams_freqs))
+                    ngrams_freqs = dict(ngrams_freqs)
+                    filename = self.model_path + "/" + str(N) + "-grams.pickle"
+                    with open(filename, "wb") as f:
+                        pickle.dump(ngrams_freqs, f)
+                        print("Saving the %s-grams in %s" % (N, filename))
 
-            sc.stop()
+                sc.stop()
+
 
     def compute_prob_sentence(self, sentence):
         """
@@ -170,6 +176,7 @@ ac.predictions("country")
             return total_prob
         else:
             return -100
+
 
     def predictions(self, word):
         """
