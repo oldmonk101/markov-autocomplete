@@ -68,8 +68,6 @@ P (w_{N+1} | w_N, ..., w_{N - O + 2})
 
 where `O` is the order of the model.
 
-The current version supports up to the third order.
-
 Once the best candidate is computed the probability of the whole sentence is approximated with an n-gram model
 
 ```
@@ -91,3 +89,9 @@ P( w1, w2, w3, w4) = P(w1) P(w2|w1) P(w3|w1, w2) P(w4|w2, w3)
 Higher-order model will be more precise, but at the expense of generating a large list of n-grams, which may negatively impact on storage space and computational time.
 
 If the input string contains less words than the order of the model, the autocomplete will compute the most probably n-gram of the same order of the model.
+
+## References
+
+* [1] https://en.wikipedia.org/wiki/N-gram
+* [2] https://en.wikipedia.org/wiki/Hidden_Markov_model
+* [3] https://en.wikipedia.org/wiki/Language_model
