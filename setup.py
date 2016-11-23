@@ -19,8 +19,8 @@ def setup_package():
         build_requires = ['numpy>=1.6.2', 'nltk>=3.2.1']
 
     metadata = dict(
-        name='markov-autocomplete',
-        packages=['markov-autocomplete'],
+        name='autocomplete',
+        packages=['autocomplete'],
         # Versions should comply with PEP440.  For a discussion on single-sourcing
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
