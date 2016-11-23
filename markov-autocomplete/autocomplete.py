@@ -12,7 +12,7 @@ and pass it as an argument of the class.
 
 For example we can use the first two paragraphs from Robinson Crusoe
 
-from autocomplete.autocomplete import Autocomplete
+from markov-autocomplete.autocomplete import Autocomplete
 
 sentences = ['''I WAS born in the year 1632, in the city of York, of a good family,\
 though not of that country, my father being a foreigner of Bremen,\

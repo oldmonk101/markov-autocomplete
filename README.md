@@ -29,7 +29,7 @@ The model can be trained with your own list of sentences.
 For instance, if we want to train using the first two paragraphs of Robinson Crusoe 
 
 ```
-from autocomplete.autocomplete import Autocomplete
+from markov-autocomplete.autocomplete import Autocomplete
 
 sentences = ['''I WAS born in the year 1632, in the city of York, of a good family,\
 though not of that country, my father being a foreigner of Bremen,\

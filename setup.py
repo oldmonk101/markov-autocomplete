@@ -19,8 +19,8 @@ def setup_package():
         build_requires = ['numpy>=1.6.2', 'nltk>=3.2.1']
 
     metadata = dict(
-        name='autocomplete',
-        packages=['autocomplete'],
+        name='markov-autocomplete',
+        packages=['markov-autocomplete'],
         # Versions should comply with PEP440.  For a discussion on single-sourcing
         # the version across setup.py and the project code, see
         # https://packaging.python.org/en/latest/single_source_version.html
@@ -78,7 +78,7 @@ def setup_package():
         # installed, specify them here.  If using Python 2.6 or less, then these
         # have to be included in MANIFEST.in as well.
         package_data={
-            'autocomplete': ['*.py']
+            'markov-autocomplete': ['*.py']
         },
 
         # To provide executable scripts, use entry points in preference to the
