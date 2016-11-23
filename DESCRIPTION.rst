@@ -33,8 +33,6 @@ The most probable candidate for `w_{N+1}` is computed by maximazing
 
 where `O` is the order of the model.
 
-The current version supports up to the third order.
-
 Once the best candidate is computed the probability of the whole sentence is approximated with an n-gram model
 
 `P (w_1, ..., w_N, w_{N+1}) = PROD_i P (w_i | w_{i-N-1}, ..., w_{i-1})`
