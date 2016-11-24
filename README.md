@@ -4,6 +4,10 @@ Hidden Markov Model to generate autocomplete suggestion.
 
 # Installation
 
+`pip install markov_autocomplete`
+
+Or, alternatively, ...
+
 Download and install the last spark distribution
 Export variables, e.g.:
 
